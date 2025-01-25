@@ -3,6 +3,7 @@ from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import User
 from mptt.models import MPTTModel, TreeForeignKey
 from django.urls import reverse
+from apps.services.utils import unique_slugify
 
 
 class Post(models.Model):
@@ -52,6 +53,12 @@ class Post(models.Model):
         """
         return reverse('post_detail', kwargs={'slug': self.slug})
 
+    def save(self, *args, **kwargs):
+        """
+        При сохранении генерируем слаг и проверяем на уникальность
+        """
+        self.slug = unique_slugify(self, self.title, self.slug)
+        super().save(*args, **kwargs)
 
 class Category(MPTTModel):
     """
