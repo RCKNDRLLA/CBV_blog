@@ -6,6 +6,18 @@ from django.urls import reverse
 from apps.services.utils import unique_slugify
 
 
+class PostManager(models.Manager):
+    """
+    Кастомный менеджер для модели постов
+    """
+
+    def get_queryset(self):
+        """
+        Список постов (SQL запрос с фильтрацией по статусу опубликованно)
+        """
+        return super().get_queryset().filter(status='published')
+
+
 class Post(models.Model):
     """
     Модель постов для нашего блога
@@ -23,11 +35,12 @@ class Post(models.Model):
     category = TreeForeignKey('Category', on_delete=models.PROTECT, related_name='posts',
                               verbose_name='Категория')  # New
     thumbnail = models.ImageField(default='default.jpg',
-        verbose_name='Изображение записи',
-        blank=True,
-        upload_to='images/thumbnails/%Y/%m/%d/',
-        validators=[FileExtensionValidator(allowed_extensions=('png', 'jpg', 'webp', 'jpeg', 'gif'))]
-    )
+                                  verbose_name='Изображение записи',
+                                  blank=True,
+                                  upload_to='images/thumbnails/%Y/%m/%d/',
+                                  validators=[
+                                      FileExtensionValidator(allowed_extensions=('png', 'jpg', 'webp', 'jpeg', 'gif'))]
+                                  )
     status = models.CharField(choices=STATUS_OPTIONS, default='published', verbose_name='Статус записи', max_length=10)
     create = models.DateTimeField(auto_now_add=True, verbose_name='Время добавления')
     update = models.DateTimeField(auto_now=True, verbose_name='Время обновления')
@@ -36,6 +49,8 @@ class Post(models.Model):
     updater = models.ForeignKey(to=User, verbose_name='Обновил', on_delete=models.SET_NULL, null=True,
                                 related_name='updater_posts', blank=True)
     fixed = models.BooleanField(verbose_name='Прикреплено', default=False)
+    objects = models.Manager()
+    custom = PostManager()
 
     class Meta:
         db_table = 'blog_post'
@@ -59,6 +74,7 @@ class Post(models.Model):
         """
         self.slug = unique_slugify(self, self.title, self.slug)
         super().save(*args, **kwargs)
+
 
 class Category(MPTTModel):
     """
@@ -96,7 +112,6 @@ class Category(MPTTModel):
         Получаем прямую ссылку на категорию
         """
         return reverse('post_by_category', kwargs={'slug': self.slug})
-
 
     def __str__(self):
         """
