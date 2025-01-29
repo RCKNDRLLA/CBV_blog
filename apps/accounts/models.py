@@ -6,7 +6,7 @@ from apps.services.utils import unique_slugify
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    slug = models.SlugField(verbose_name='URL', max_length=255, blank=True, unique=True)
+    slug = models.SlugField(verbose_name='URL', max_length=255, blank=True)
     avatar = models.ImageField(
         verbose_name='Аватар',
         upload_to='images/avatars/%Y/%m/%d/',
@@ -29,7 +29,7 @@ class Profile(models.Model):
         Сохранение полей модели при их отсутствии заполнения
         """
         if not self.slug:
-            self.flug = unique_slugify(self, self.user.username, self.slug)
+            self.slug = unique_slugify(self, self.user.username, self.slug)
         super().save(*args, **kwargs)
 
     def __str__(self):
