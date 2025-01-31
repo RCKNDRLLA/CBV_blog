@@ -20,4 +20,20 @@ class PostCreateForm(forms.ModelForm):
                 'autocomplete': 'off'
             })
 
-    
+class PostUpdateForm(PostCreateForm):
+    '''
+    Форма обновления статьи на сайте
+    '''
+
+    class Meta:
+        model = Post
+        fields = PostCreateForm.Meta.fields + ('updater', 'fixed')
+
+    def __init__(self, *args, **kwargs):
+        '''
+        обновление стилей формы под Bootstrap
+        '''
+        super().__init__(*args, **kwargs)
+        self.fields['fixed'].widget.attrs.update({
+            'class': 'form-check-input'
+        })
